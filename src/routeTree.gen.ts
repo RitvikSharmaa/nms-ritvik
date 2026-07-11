@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ComparisonRouteImport } from './routes/comparison'
 import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NetworksNetworkIdRouteImport } from './routes/networks.$networkId'
@@ -17,6 +19,16 @@ import { Route as NetworksNetworkIdRouteImport } from './routes/networks.$networ
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
   path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComparisonRoute = ComparisonRouteImport.update({
+  id: '/comparison',
+  path: '/comparison',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AlertsRoute = AlertsRouteImport.update({
@@ -38,12 +50,16 @@ const NetworksNetworkIdRoute = NetworksNetworkIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
+  '/comparison': typeof ComparisonRoute
+  '/reports': typeof ReportsRoute
   '/upload': typeof UploadRoute
   '/networks/$networkId': typeof NetworksNetworkIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
+  '/comparison': typeof ComparisonRoute
+  '/reports': typeof ReportsRoute
   '/upload': typeof UploadRoute
   '/networks/$networkId': typeof NetworksNetworkIdRoute
 }
@@ -51,20 +67,43 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
+  '/comparison': typeof ComparisonRoute
+  '/reports': typeof ReportsRoute
   '/upload': typeof UploadRoute
   '/networks/$networkId': typeof NetworksNetworkIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/alerts' | '/upload' | '/networks/$networkId'
+  fullPaths:
+    | '/'
+    | '/alerts'
+    | '/comparison'
+    | '/reports'
+    | '/upload'
+    | '/networks/$networkId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/alerts' | '/upload' | '/networks/$networkId'
-  id: '__root__' | '/' | '/alerts' | '/upload' | '/networks/$networkId'
+  to:
+    | '/'
+    | '/alerts'
+    | '/comparison'
+    | '/reports'
+    | '/upload'
+    | '/networks/$networkId'
+  id:
+    | '__root__'
+    | '/'
+    | '/alerts'
+    | '/comparison'
+    | '/reports'
+    | '/upload'
+    | '/networks/$networkId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertsRoute: typeof AlertsRoute
+  ComparisonRoute: typeof ComparisonRoute
+  ReportsRoute: typeof ReportsRoute
   UploadRoute: typeof UploadRoute
   NetworksNetworkIdRoute: typeof NetworksNetworkIdRoute
 }
@@ -76,6 +115,20 @@ declare module '@tanstack/react-router' {
       path: '/upload'
       fullPath: '/upload'
       preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comparison': {
+      id: '/comparison'
+      path: '/comparison'
+      fullPath: '/comparison'
+      preLoaderRoute: typeof ComparisonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/alerts': {
@@ -105,6 +158,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertsRoute: AlertsRoute,
+  ComparisonRoute: ComparisonRoute,
+  ReportsRoute: ReportsRoute,
   UploadRoute: UploadRoute,
   NetworksNetworkIdRoute: NetworksNetworkIdRoute,
 }
