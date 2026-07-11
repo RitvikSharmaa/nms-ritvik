@@ -32,7 +32,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "NOC Dashboard — NetPulse NMS" },
       {
         property: "og:description",
-        content: "Real-time global infrastructure health across five enterprise networks.",
+        content: "Global network operations dashboard: device availability, latency, packet loss, bandwidth and live alerts across all five networks.",
       },
     ],
   }),
