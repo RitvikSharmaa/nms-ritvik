@@ -9,16 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as UploadRouteImport } from './routes/upload'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ComparisonRouteImport } from './routes/comparison'
+import { Route as AuditLogsRouteImport } from './routes/audit-logs'
 import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NetworksNetworkIdRouteImport } from './routes/networks.$networkId'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
   path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -29,6 +42,11 @@ const ReportsRoute = ReportsRouteImport.update({
 const ComparisonRoute = ComparisonRouteImport.update({
   id: '/comparison',
   path: '/comparison',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditLogsRoute = AuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AlertsRoute = AlertsRouteImport.update({
@@ -50,26 +68,35 @@ const NetworksNetworkIdRoute = NetworksNetworkIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
+  '/audit-logs': typeof AuditLogsRoute
   '/comparison': typeof ComparisonRoute
   '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
   '/upload': typeof UploadRoute
+  '/users': typeof UsersRoute
   '/networks/$networkId': typeof NetworksNetworkIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
+  '/audit-logs': typeof AuditLogsRoute
   '/comparison': typeof ComparisonRoute
   '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
   '/upload': typeof UploadRoute
+  '/users': typeof UsersRoute
   '/networks/$networkId': typeof NetworksNetworkIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
+  '/audit-logs': typeof AuditLogsRoute
   '/comparison': typeof ComparisonRoute
   '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
   '/upload': typeof UploadRoute
+  '/users': typeof UsersRoute
   '/networks/$networkId': typeof NetworksNetworkIdRoute
 }
 export interface FileRouteTypes {
@@ -77,44 +104,70 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/alerts'
+    | '/audit-logs'
     | '/comparison'
     | '/reports'
+    | '/settings'
     | '/upload'
+    | '/users'
     | '/networks/$networkId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/alerts'
+    | '/audit-logs'
     | '/comparison'
     | '/reports'
+    | '/settings'
     | '/upload'
+    | '/users'
     | '/networks/$networkId'
   id:
     | '__root__'
     | '/'
     | '/alerts'
+    | '/audit-logs'
     | '/comparison'
     | '/reports'
+    | '/settings'
     | '/upload'
+    | '/users'
     | '/networks/$networkId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertsRoute: typeof AlertsRoute
+  AuditLogsRoute: typeof AuditLogsRoute
   ComparisonRoute: typeof ComparisonRoute
   ReportsRoute: typeof ReportsRoute
+  SettingsRoute: typeof SettingsRoute
   UploadRoute: typeof UploadRoute
+  UsersRoute: typeof UsersRoute
   NetworksNetworkIdRoute: typeof NetworksNetworkIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/upload': {
       id: '/upload'
       path: '/upload'
       fullPath: '/upload'
       preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -129,6 +182,13 @@ declare module '@tanstack/react-router' {
       path: '/comparison'
       fullPath: '/comparison'
       preLoaderRoute: typeof ComparisonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/audit-logs': {
+      id: '/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/audit-logs'
+      preLoaderRoute: typeof AuditLogsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/alerts': {
@@ -158,9 +218,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertsRoute: AlertsRoute,
+  AuditLogsRoute: AuditLogsRoute,
   ComparisonRoute: ComparisonRoute,
   ReportsRoute: ReportsRoute,
+  SettingsRoute: SettingsRoute,
   UploadRoute: UploadRoute,
+  UsersRoute: UsersRoute,
   NetworksNetworkIdRoute: NetworksNetworkIdRoute,
 }
 export const routeTree = rootRouteImport
