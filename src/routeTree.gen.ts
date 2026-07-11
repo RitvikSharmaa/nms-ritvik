@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as UploadRouteImport } from './routes/upload'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ComparisonRouteImport } from './routes/comparison'
@@ -27,6 +28,11 @@ const UsersRoute = UsersRouteImport.update({
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
   path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/comparison': typeof ComparisonRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/upload': typeof UploadRoute
   '/users': typeof UsersRoute
   '/networks/$networkId': typeof NetworksNetworkIdRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/comparison': typeof ComparisonRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/upload': typeof UploadRoute
   '/users': typeof UsersRoute
   '/networks/$networkId': typeof NetworksNetworkIdRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/comparison': typeof ComparisonRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/upload': typeof UploadRoute
   '/users': typeof UsersRoute
   '/networks/$networkId': typeof NetworksNetworkIdRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/comparison'
     | '/reports'
     | '/settings'
+    | '/sitemap.xml'
     | '/upload'
     | '/users'
     | '/networks/$networkId'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/comparison'
     | '/reports'
     | '/settings'
+    | '/sitemap.xml'
     | '/upload'
     | '/users'
     | '/networks/$networkId'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/comparison'
     | '/reports'
     | '/settings'
+    | '/sitemap.xml'
     | '/upload'
     | '/users'
     | '/networks/$networkId'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   ComparisonRoute: typeof ComparisonRoute
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   UploadRoute: typeof UploadRoute
   UsersRoute: typeof UsersRoute
   NetworksNetworkIdRoute: typeof NetworksNetworkIdRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/upload'
       fullPath: '/upload'
       preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComparisonRoute: ComparisonRoute,
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   UploadRoute: UploadRoute,
   UsersRoute: UsersRoute,
   NetworksNetworkIdRoute: NetworksNetworkIdRoute,
