@@ -116,7 +116,7 @@ function UploadPage() {
   const invalid = state?.rows.filter((r) => r.errors.length > 0) ?? [];
   const creates = valid.filter((r) => r.action === "create").length;
   const updates = valid.filter((r) => r.action === "update").length;
-  const duplicates = invalid.filter((r) => r.duplicateOf);
+  void invalid.filter((r) => r.duplicateOf);
   const invalidIps = invalid.filter((r) => r.errors.some((e) => e.includes("Invalid IP")));
   const badNetworks = invalid.filter((r) => r.errors.some((e) => e.includes("Unknown network")));
   const badLinks = invalid.filter((r) => r.errors.some((e) => e.includes("Unknown link")));
