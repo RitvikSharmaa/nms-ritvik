@@ -12,7 +12,7 @@ import {
 import type { Device, DeviceStatus, LiveMetrics } from "@/lib/nms/types";
 import { fmtMbps, fmtMs, fmtPct, timeAgo } from "@/lib/nms/format";
 import { useNow } from "@/lib/nms/useNms";
-import { HealthBar, LinkBadges, StatusBadge } from "./badges";
+import { HealthBar, LinkStatusMatrix, StatusBadge } from "./badges";
 import { cn } from "@/lib/utils";
 
 export interface DeviceRow {
@@ -210,8 +210,8 @@ export function DeviceTable({
                 </td>
                 <td className="px-3 py-2.5 font-mono text-xs">{device.ip}</td>
                 <td className="px-3 py-2.5">{device.deviceName}</td>
-                <td className="px-3 py-2.5">
-                  <LinkBadges links={device.links} />
+                <td className="px-3 py-1.5 align-middle">
+                  <LinkStatusMatrix assigned={device.links} status={metrics.status} />
                 </td>
                 {showNetwork && (
                   <td className="px-3 py-2.5 text-xs text-muted-foreground">{device.network}</td>
