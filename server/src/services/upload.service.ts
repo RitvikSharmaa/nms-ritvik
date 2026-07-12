@@ -99,6 +99,7 @@ export const uploadService = {
     buffer: Buffer,
     userId: string | null,
     dryRun: boolean,
+    options: { replaceInventory?: boolean } = {},
   ): Promise<UploadReport> {
     const lower = fileName.toLowerCase();
     let raw: RawRow[];
@@ -122,7 +123,6 @@ export const uploadService = {
         errors.push(...parsed.error.errors.map((e) => e.message));
       }
 
-      // network validation
       let network: NetworkName | null = null;
       if (row.networkRaw) {
         if ((NETWORK_NAMES as readonly string[]).includes(row.networkRaw)) {
@@ -132,7 +132,6 @@ export const uploadService = {
         }
       }
 
-      // link splitting + validation (junction table, never CSV storage)
       const links: LinkName[] = [];
       if (row.linkRaw) {
         for (const part of row.linkRaw.split(",").map((p) => p.trim()).filter(Boolean)) {
@@ -145,31 +144,38 @@ export const uploadService = {
         if (links.length === 0 && errors.length === 0) errors.push("No valid links");
       }
 
-      // duplicates within file
+      // within-file duplicate IP is an error; matching IP in inventory is an UPDATE.
+      let matchesInventoryIp = false;
       if (row.ip) {
         const first = seenIps.get(row.ip);
-        if (first !== undefined) errors.push(`Duplicate IP within file (row ${first})`);
-        else {
+        if (first !== undefined) {
+          errors.push(`Duplicate IP within file (row ${first})`);
+        } else {
           seenIps.set(row.ip, rowNumber);
           if (errors.length === 0 && (await deviceRepository.existsByIp(row.ip))) {
-            errors.push(`IP ${row.ip} already exists in inventory`);
+            matchesInventoryIp = true;
           }
         }
       }
       if (row.deviceName && network) {
         const key = `${network}::${row.deviceName.toLowerCase()}`;
         const first = seenNames.get(key);
-        if (first !== undefined) errors.push(`Duplicate device name within file (row ${first})`);
-        else {
+        if (first !== undefined) {
+          errors.push(`Duplicate device name within file (row ${first})`);
+        } else {
           seenNames.set(key, rowNumber);
           if (
             errors.length === 0 &&
+            !matchesInventoryIp &&
             (await deviceRepository.existsByName(row.deviceName, network))
           ) {
-            errors.push(`Device "${row.deviceName}" already exists in ${network}`);
+            errors.push(`Device "${row.deviceName}" already exists in ${network} under a different IP`);
           }
         }
       }
+
+      const action: RowResult["action"] =
+        errors.length > 0 ? "invalid" : matchesInventoryIp ? "update" : "create";
 
       results.push({
         rowNumber,
@@ -179,31 +185,48 @@ export const uploadService = {
         links: links.sort() as LinkName[],
         network,
         errors,
+        action,
       });
     }
 
-    let successRows = 0;
+    let createdRows = 0;
+    let updatedRows = 0;
+    let removedRows = 0;
+
     if (!dryRun) {
-      for (const r of results) {
-        if (r.errors.length > 0 || !r.network) continue;
+      const validRows = results.filter((r) => r.errors.length === 0 && r.network);
+
+      // Source-of-truth mode: purge any device whose IP is not in the upload.
+      if (options.replaceInventory) {
+        const keepIps = validRows.map((r) => r.ip);
+        removedRows = await deviceRepository.deleteAllExceptIps(keepIps);
+      }
+
+      for (const r of validRows) {
         try {
-          await deviceRepository.createWithLinks({
+          const { created } = await deviceRepository.upsertWithLinks({
             username: r.username,
             ip: r.ip,
             deviceName: r.deviceName,
-            network: r.network,
+            network: r.network!,
             links: r.links,
           });
-          successRows++;
+          if (created) createdRows++;
+          else updatedRows++;
         } catch (err) {
           r.errors.push(
             err instanceof Error ? `Database error: ${err.message}` : "Database error",
           );
+          r.action = "invalid";
         }
       }
-      if (successRows > 0) emitDeviceImported(successRows);
+
+      if (createdRows + updatedRows + removedRows > 0) {
+        emitDeviceImported(createdRows + updatedRows);
+      }
     }
 
+    const successRows = createdRows + updatedRows;
     const failedRows = results.filter((r) => r.errors.length > 0).length;
     const { rows } = await query<{ id: string }>(
       `INSERT INTO uploads (file_name, uploaded_by, total_rows, success_rows, failed_rows, error_report)
@@ -222,6 +245,9 @@ export const uploadService = {
       uploadId: rows[0].id,
       fileName,
       totalRows: results.length,
+      createdRows,
+      updatedRows,
+      removedRows,
       successRows,
       failedRows,
       rows: results,
