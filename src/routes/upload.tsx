@@ -13,6 +13,8 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNms } from "@/lib/nms/useNms";
 import { checkHeaders, parseUploadFile, sampleCsv, validateRows } from "@/lib/nms/importer";
@@ -42,12 +44,19 @@ interface ParseState {
   headerErrors: string[];
 }
 
+interface ImportResult {
+  created: number;
+  updated: number;
+  removed: number;
+}
+
 function UploadPage() {
   const { engine } = useNms();
   const [dragOver, setDragOver] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [state, setState] = useState<ParseState | null>(null);
-  const [imported, setImported] = useState<number | null>(null);
+  const [imported, setImported] = useState<ImportResult | null>(null);
+  const [replaceInventory, setReplaceInventory] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
@@ -83,9 +92,14 @@ function UploadPage() {
 
   const doImport = () => {
     if (!engine || !state) return;
-    const count = engine.importDevices(state.rows, state.fileName);
-    setImported(count);
-    toast.success(`${count} devices imported and monitoring started.`);
+    const result = engine.importDevices(state.rows, state.fileName, { replaceInventory });
+    setImported(result);
+    const parts = [
+      `${result.created} created`,
+      `${result.updated} updated`,
+      replaceInventory ? `${result.removed} removed` : null,
+    ].filter(Boolean);
+    toast.success(`Inventory synced — ${parts.join(", ")}. Monitoring active.`);
   };
 
   const downloadTemplate = () => {
@@ -100,6 +114,8 @@ function UploadPage() {
 
   const valid = state?.rows.filter((r) => r.errors.length === 0) ?? [];
   const invalid = state?.rows.filter((r) => r.errors.length > 0) ?? [];
+  const creates = valid.filter((r) => r.action === "create").length;
+  const updates = valid.filter((r) => r.action === "update").length;
   const duplicates = invalid.filter((r) => r.duplicateOf);
   const invalidIps = invalid.filter((r) => r.errors.some((e) => e.includes("Invalid IP")));
   const badNetworks = invalid.filter((r) => r.errors.some((e) => e.includes("Unknown network")));
