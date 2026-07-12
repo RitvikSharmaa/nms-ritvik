@@ -132,14 +132,21 @@ apiRouter.post(
   wrap(async (req, res) => {
     if (!req.file) throw badRequest("No file uploaded (field name: file)");
     const dryRun = req.query.dryRun === "true";
+    const replaceInventory = req.query.replaceInventory !== "false"; // default true
     const report = await uploadService.processFile(
       req.file.originalname,
       req.file.buffer,
       req.user?.id ?? null,
       dryRun,
+      { replaceInventory },
     );
     if (!dryRun) {
-      await audit(req, "DEVICE_IMPORT", req.file.originalname, `${report.successRows} imported`);
+      await audit(
+        req,
+        "DEVICE_IMPORT",
+        req.file.originalname,
+        `created=${report.createdRows} updated=${report.updatedRows} removed=${report.removedRows}`,
+      );
     }
     res.json(report);
   }),
