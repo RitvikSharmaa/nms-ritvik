@@ -114,6 +114,7 @@ export interface ImportRow {
   network: NetworkName | null;
   errors: string[];
   duplicateOf?: "file" | "inventory";
+  action: "create" | "update" | "invalid";
 }
 
 export interface ImportReport {

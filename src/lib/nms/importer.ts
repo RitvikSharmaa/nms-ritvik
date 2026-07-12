@@ -102,7 +102,8 @@ export function validateRows(rows: RawRow[], engine: NmsEngine): ImportRow[] {
       }
     }
 
-    // duplicate detection within file
+    // within-file duplicate IP is an error; matching IP in inventory is an UPDATE.
+    let matchesInventoryIp = false;
     if (ip && isValidIp(ip)) {
       const firstIp = seenIps.get(ip);
       if (firstIp !== undefined) {
@@ -110,14 +111,15 @@ export function validateRows(rows: RawRow[], engine: NmsEngine): ImportRow[] {
         duplicateOf = "file";
       } else {
         seenIps.set(ip, rowNumber);
-      }
-      // duplicate against inventory
-      if (firstIp === undefined && engine.hasIp(ip)) {
-        errors.push(`IP ${ip} already exists in the device inventory.`);
-        duplicateOf = "inventory";
+        if (engine.hasIp(ip)) {
+          matchesInventoryIp = true;
+          duplicateOf = "inventory";
+        }
       }
     }
 
+    // within-file duplicate name+network is an error; name collision in inventory
+    // is only an error when it targets a DIFFERENT device (different IP).
     if (deviceName && network) {
       const key = `${network}::${deviceName.toLowerCase()}`;
       const firstName = seenNames.get(key);
@@ -126,12 +128,17 @@ export function validateRows(rows: RawRow[], engine: NmsEngine): ImportRow[] {
         duplicateOf = duplicateOf ?? "file";
       } else {
         seenNames.set(key, rowNumber);
-        if (engine.hasDeviceName(deviceName, network)) {
-          errors.push(`Device "${deviceName}" already exists in ${network}.`);
+        if (!matchesInventoryIp && engine.hasDeviceName(deviceName, network)) {
+          errors.push(
+            `Device "${deviceName}" already exists in ${network} under a different IP.`,
+          );
           duplicateOf = duplicateOf ?? "inventory";
         }
       }
     }
+
+    const action: ImportRow["action"] =
+      errors.length > 0 ? "invalid" : matchesInventoryIp ? "update" : "create";
 
     return {
       rowNumber,
@@ -144,6 +151,7 @@ export function validateRows(rows: RawRow[], engine: NmsEngine): ImportRow[] {
       network,
       errors,
       duplicateOf,
+      action,
     };
   });
 }
