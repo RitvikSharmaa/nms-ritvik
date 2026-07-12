@@ -58,6 +58,117 @@ export function LinkBadges({ links }: { links: LinkName[] }) {
   );
 }
 
+const ALL_LINKS: LinkName[] = ["Link-1", "Link-2", "Link-3"];
+
+export type LinkOpState = "up" | "down" | "na";
+
+/**
+ * Derive per-link operational state from device assignment + overall status.
+ * - Not assigned → N/A
+ * - Device down → all assigned links DOWN
+ * - Device degraded → first assigned link DOWN, others UP
+ * - Device up → all assigned UP
+ */
+export function deriveLinkStates(
+  assigned: LinkName[],
+  status: DeviceStatus,
+): Record<LinkName, LinkOpState> {
+  const set = new Set(assigned);
+  const firstAssigned = ALL_LINKS.find((l) => set.has(l));
+  const out = {} as Record<LinkName, LinkOpState>;
+  for (const l of ALL_LINKS) {
+    if (!set.has(l)) {
+      out[l] = "na";
+    } else if (status === "down") {
+      out[l] = "down";
+    } else if (status === "degraded" && l === firstAssigned) {
+      out[l] = "down";
+    } else {
+      out[l] = "up";
+    }
+  }
+  return out;
+}
+
+const LINK_TONE: Record<LinkOpState, { dot: string; text: string; label: string; bg: string; border: string }> = {
+  up: {
+    dot: "var(--success)",
+    text: "var(--success)",
+    label: "UP",
+    bg: "color-mix(in oklab, var(--success) 10%, transparent)",
+    border: "color-mix(in oklab, var(--success) 35%, transparent)",
+  },
+  down: {
+    dot: "var(--destructive)",
+    text: "var(--destructive)",
+    label: "DOWN",
+    bg: "color-mix(in oklab, var(--destructive) 12%, transparent)",
+    border: "color-mix(in oklab, var(--destructive) 40%, transparent)",
+  },
+  na: {
+    dot: "var(--muted-foreground)",
+    text: "var(--muted-foreground)",
+    label: "N/A",
+    bg: "color-mix(in oklab, var(--muted-foreground) 8%, transparent)",
+    border: "color-mix(in oklab, var(--muted-foreground) 25%, transparent)",
+  },
+};
+
+export function LinkStatusMatrix({
+  assigned,
+  status,
+}: {
+  assigned: LinkName[];
+  status: DeviceStatus;
+}) {
+  const states = deriveLinkStates(assigned, status);
+  return (
+    <table className="w-[112px] border-separate border-spacing-0 overflow-hidden rounded-md border border-border/70 font-mono text-[10px]">
+      <tbody>
+        {ALL_LINKS.map((l, i) => {
+          const s = states[l];
+          const tone = LINK_TONE[s];
+          return (
+            <tr
+              key={l}
+              className={cn(
+                "transition-colors hover:bg-accent/60",
+                i > 0 && "border-t border-border/60",
+              )}
+              style={{ backgroundColor: tone.bg }}
+            >
+              <td
+                className="w-[46px] px-1.5 py-0.5 text-foreground/85"
+                style={{ borderTop: i > 0 ? `1px solid ${tone.border}` : undefined }}
+              >
+                {l.replace("Link-", "L")}
+              </td>
+              <td
+                className="px-1.5 py-0.5 text-right"
+                style={{
+                  color: tone.text,
+                  borderTop: i > 0 ? `1px solid ${tone.border}` : undefined,
+                }}
+              >
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    className="inline-block h-1.5 w-1.5 rounded-full"
+                    style={{
+                      backgroundColor: tone.dot,
+                      boxShadow: s !== "na" ? `0 0 6px ${tone.dot}` : undefined,
+                    }}
+                  />
+                  <span className="font-semibold tracking-wider">{tone.label}</span>
+                </span>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
 export function HealthBar({ score }: { score: number }) {
   const c =
     score >= 80 ? "var(--success)" : score >= 50 ? "var(--warning)" : "var(--destructive)";
