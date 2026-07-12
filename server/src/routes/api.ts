@@ -17,6 +17,9 @@ import {
 import { userRepository } from "../repositories/user.repository";
 import { badRequest, notFound } from "../utils/http-error";
 import { NETWORK_NAMES, type NetworkName } from "../domain/types";
+import { getCycleMetrics, getCurrentSettings, restartScheduler } from "../monitoring/scheduler";
+import { getPoolStats } from "../config/db";
+import { logger } from "../config/logger";
 
 const wrap =
   (fn: (req: Request, res: Response) => Promise<void>) =>
@@ -38,7 +41,28 @@ export const apiRouter = Router();
 
 /** @openapi /health: { get: { summary: Health check, security: [] } } */
 apiRouter.get("/health", (_req, res) => {
-  res.json({ status: "healthy", at: new Date().toISOString() });
+  const poolStats = getPoolStats();
+  const cycleMetrics = getCycleMetrics();
+  const lastCycle = cycleMetrics[cycleMetrics.length - 1];
+  
+  res.json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    database: {
+      poolTotal: poolStats.totalCount,
+      poolIdle: poolStats.idleCount,
+      poolWaiting: poolStats.waitingCount,
+    },
+    monitoring: lastCycle ? {
+      lastCycleTime: new Date(lastCycle.startTime).toISOString(),
+      deviceCount: lastCycle.deviceCount,
+      successCount: lastCycle.successCount,
+      failureCount: lastCycle.failureCount,
+      duration: lastCycle.duration,
+    } : null,
+  });
 });
 
 /** @openapi /auth/login: { post: { summary: Login, security: [] } } */
@@ -231,6 +255,13 @@ apiRouter.patch(
   wrap(async (req, res) => {
     const updated = await settingsRepository.update(req.body);
     await audit(req, "SETTINGS_UPDATE", "settings", JSON.stringify(req.body));
+    
+    // Restart scheduler if poll interval changed
+    if (req.body.poll_interval_sec !== undefined) {
+      logger.info(`Poll interval changed to ${req.body.poll_interval_sec}s, restarting scheduler`);
+      restartScheduler();
+    }
+    
     res.json(updated);
   }),
 );

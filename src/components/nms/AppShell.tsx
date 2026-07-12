@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Activity,
@@ -21,6 +21,23 @@ import { useNms, useNow } from "@/lib/nms/useNms";
 import { fmtClock, timeAgo } from "@/lib/nms/format";
 import { Badge } from "@/components/ui/badge";
 
+// Client-only clock component to avoid hydration mismatch
+function ClientClock() {
+  const [mounted, setMounted] = useState(false);
+  const now = useNow();
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // During SSR and initial client render, show nothing to avoid mismatch
+  if (!mounted) {
+    return <span className="font-mono text-xs text-muted-foreground invisible">00:00:00 am</span>;
+  }
+  
+  return <span className="font-mono text-xs text-muted-foreground">{fmtClock(now)}</span>;
+}
+
 const MAIN_NAV = [
   { title: "Dashboard", to: "/", icon: LayoutDashboard },
   { title: "Upload Devices", to: "/upload", icon: FileUp },
@@ -39,7 +56,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { engine, version } = useNms();
-  const now = useNow();
   void version;
 
   const summary = engine?.globalSummary();
@@ -175,7 +191,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="status-dot pulse-live" style={{ backgroundColor: "var(--success)" }} />
             <span className="hidden sm:inline">Monitoring engine</span>
             <span className="font-mono text-foreground/80">
-              {engine ? `cycle ${timeAgo(engine.lastCycleAt, now)}` : "starting…"}
+              {engine ? `cycle ${timeAgo(engine.lastCycleAt, Date.now())}` : "starting…"}
             </span>
           </div>
           <div className="ml-auto flex items-center gap-4">
@@ -186,7 +202,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <span style={{ color: "var(--destructive)" }}>▼ {summary.offline} down</span>
               </div>
             )}
-            <span className="font-mono text-xs text-muted-foreground">{fmtClock(now)}</span>
+            <ClientClock />
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 font-display text-xs font-semibold text-primary">
               AD
             </span>

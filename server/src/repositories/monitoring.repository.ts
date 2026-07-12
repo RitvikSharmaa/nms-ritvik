@@ -11,28 +11,37 @@ import type {
 export const metricRepository = {
   async insertBatch(results: PollResult[]): Promise<void> {
     if (results.length === 0) return;
-    const values: unknown[] = [];
-    const tuples = results.map((r, i) => {
-      const o = i * 9;
-      values.push(
-        r.deviceId,
-        r.networkId,
-        r.status,
-        r.latencyMs,
-        r.packetLoss,
-        r.bandwidthInMbps,
-        r.bandwidthOutMbps,
-        r.snmpInOctets,
-        r.snmpOutOctets,
+    
+    // For large batches (500+ devices), use parameterized batch insert
+    // This is more efficient than individual inserts and prevents parameter limit issues
+    const batchSize = 100; // Insert 100 devices at a time to avoid parameter limits
+    
+    for (let i = 0; i < results.length; i += batchSize) {
+      const batch = results.slice(i, i + batchSize);
+      const values: unknown[] = [];
+      const tuples = batch.map((r, idx) => {
+        const offset = idx * 9;
+        values.push(
+          r.deviceId,
+          r.networkId,
+          r.status,
+          r.latencyMs,
+          r.packetLoss,
+          r.bandwidthInMbps,
+          r.bandwidthOutMbps,
+          r.snmpInOctets,
+          r.snmpOutOctets,
+        );
+        return `($${offset + 1},$${offset + 2},$${offset + 3},$${offset + 4},$${offset + 5},$${offset + 6},$${offset + 7},$${offset + 8},$${offset + 9})`;
+      });
+      
+      await query(
+        `INSERT INTO metrics (device_id, network_id, status, latency_ms, packet_loss,
+          bandwidth_in, bandwidth_out, snmp_in_octets, snmp_out_octets)
+         VALUES ${tuples.join(",")}`,
+        values,
       );
-      return `($${o + 1},$${o + 2},$${o + 3},$${o + 4},$${o + 5},$${o + 6},$${o + 7},$${o + 8},$${o + 9})`;
-    });
-    await query(
-      `INSERT INTO metrics (device_id, network_id, status, latency_ms, packet_loss,
-        bandwidth_in, bandwidth_out, snmp_in_octets, snmp_out_octets)
-       VALUES ${tuples.join(",")}`,
-      values,
-    );
+    }
   },
 
   async latestPerDevice(): Promise<MetricRecord[]> {
