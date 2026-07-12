@@ -427,37 +427,96 @@ export class NmsEngine {
     this.emit();
   }
 
-  importDevices(rows: ImportRow[], fileName: string, username = "admin"): number {
+  /**
+   * Import result: how the uploaded rows changed the inventory.
+   */
+  importDevices(
+    rows: ImportRow[],
+    fileName: string,
+    options: { replaceInventory?: boolean } = {},
+    username = "admin",
+  ): { created: number; updated: number; removed: number } {
     const now = Date.now();
-    let count = 0;
-    for (const row of rows) {
-      if (row.errors.length > 0 || !row.network) continue;
-      const device: Device = {
-        id: this.nextId("dev"),
-        username: row.username,
-        ip: row.ip,
-        deviceName: row.deviceName,
-        hostname: `${row.deviceName.toLowerCase().replace(/[^a-z0-9-]/g, "-")}.${row.network.toLowerCase()}.corp.local`,
-        network: row.network,
-        links: row.links,
-        vendor: "Unknown",
-        model: "—",
-        mac: this.randomMac(),
-        createdAt: now,
-      };
-      this.registerDevice(device);
-      // give imported devices immediate history
-      const interval = this.settings.pollIntervalSec * 1000;
-      for (let i = 20; i > 0; i--) {
-        this.pollDevice(device, now - i * interval, true);
+    let created = 0;
+    let updated = 0;
+    let removed = 0;
+
+    const validRows = rows.filter((r) => r.errors.length === 0 && r.network);
+    const keepIps = new Set(validRows.map((r) => r.ip));
+
+    // Source-of-truth mode: drop every device not present in the uploaded file.
+    if (options.replaceInventory) {
+      for (const d of [...this.devices.values()]) {
+        if (!keepIps.has(d.ip)) {
+          this.removeDeviceInternal(d.id);
+          removed++;
+        }
       }
-      count++;
     }
-    if (count > 0) {
-      this.audit(username, "DEVICE_IMPORT", fileName, `${count} devices imported`);
+
+    for (const row of validRows) {
+      const existing = this.findDeviceByIp(row.ip);
+      if (existing) {
+        existing.username = row.username;
+        existing.deviceName = row.deviceName;
+        existing.network = row.network!;
+        existing.links = row.links;
+        existing.hostname = `${row.deviceName.toLowerCase().replace(/[^a-z0-9-]/g, "-")}.${row.network!.toLowerCase()}.corp.local`;
+        updated++;
+      } else {
+        const device: Device = {
+          id: this.nextId("dev"),
+          username: row.username,
+          ip: row.ip,
+          deviceName: row.deviceName,
+          hostname: `${row.deviceName.toLowerCase().replace(/[^a-z0-9-]/g, "-")}.${row.network!.toLowerCase()}.corp.local`,
+          network: row.network!,
+          links: row.links,
+          vendor: "Unknown",
+          model: "—",
+          mac: this.randomMac(),
+          createdAt: now,
+        };
+        this.registerDevice(device);
+        const interval = this.settings.pollIntervalSec * 1000;
+        for (let i = 20; i > 0; i--) {
+          this.pollDevice(device, now - i * interval, true);
+        }
+        created++;
+      }
+    }
+
+    if (created || updated || removed) {
+      this.audit(
+        username,
+        "DEVICE_IMPORT",
+        fileName,
+        `created=${created} updated=${updated} removed=${removed}`,
+      );
       this.emit();
     }
-    return count;
+    return { created, updated, removed };
+  }
+
+  private findDeviceByIp(ip: string): Device | undefined {
+    for (const d of this.devices.values()) if (d.ip === ip) return d;
+    return undefined;
+  }
+
+  private removeDeviceInternal(id: string) {
+    this.devices.delete(id);
+    this.metrics.delete(id);
+    this.history.delete(id);
+    this.profiles.delete(id);
+    // resolve any dangling alerts for this device
+    const now = Date.now();
+    for (const a of this.alerts) {
+      if (a.deviceId === id && a.state !== "resolved") {
+        a.state = "resolved";
+        a.resolvedAt = now;
+        a.updatedAt = now;
+      }
+    }
   }
 
   addUser(u: Omit<AppUser, "id" | "createdAt" | "lastLogin">, actor = "admin") {

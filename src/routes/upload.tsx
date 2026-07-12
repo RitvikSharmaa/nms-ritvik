@@ -13,6 +13,8 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNms } from "@/lib/nms/useNms";
 import { checkHeaders, parseUploadFile, sampleCsv, validateRows } from "@/lib/nms/importer";
@@ -42,12 +44,19 @@ interface ParseState {
   headerErrors: string[];
 }
 
+interface ImportResult {
+  created: number;
+  updated: number;
+  removed: number;
+}
+
 function UploadPage() {
   const { engine } = useNms();
   const [dragOver, setDragOver] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [state, setState] = useState<ParseState | null>(null);
-  const [imported, setImported] = useState<number | null>(null);
+  const [imported, setImported] = useState<ImportResult | null>(null);
+  const [replaceInventory, setReplaceInventory] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
@@ -83,9 +92,14 @@ function UploadPage() {
 
   const doImport = () => {
     if (!engine || !state) return;
-    const count = engine.importDevices(state.rows, state.fileName);
-    setImported(count);
-    toast.success(`${count} devices imported and monitoring started.`);
+    const result = engine.importDevices(state.rows, state.fileName, { replaceInventory });
+    setImported(result);
+    const parts = [
+      `${result.created} created`,
+      `${result.updated} updated`,
+      replaceInventory ? `${result.removed} removed` : null,
+    ].filter(Boolean);
+    toast.success(`Inventory synced — ${parts.join(", ")}. Monitoring active.`);
   };
 
   const downloadTemplate = () => {
@@ -100,7 +114,9 @@ function UploadPage() {
 
   const valid = state?.rows.filter((r) => r.errors.length === 0) ?? [];
   const invalid = state?.rows.filter((r) => r.errors.length > 0) ?? [];
-  const duplicates = invalid.filter((r) => r.duplicateOf);
+  const creates = valid.filter((r) => r.action === "create").length;
+  const updates = valid.filter((r) => r.action === "update").length;
+  
   const invalidIps = invalid.filter((r) => r.errors.some((e) => e.includes("Invalid IP")));
   const badNetworks = invalid.filter((r) => r.errors.some((e) => e.includes("Unknown network")));
   const badLinks = invalid.filter((r) => r.errors.some((e) => e.includes("Unknown link")));
@@ -183,19 +199,45 @@ function UploadPage() {
           {/* Summary cards */}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
             <SummaryTile label="Total Rows" value={state.rows.length} color="var(--primary)" />
-            <SummaryTile label="Valid" value={valid.length} color="var(--success)" />
+            <SummaryTile label="Will Create" value={creates} color="var(--success)" />
+            <SummaryTile label="Will Update" value={updates} color="var(--primary)" />
             <SummaryTile label="Failed" value={invalid.length} color="var(--destructive)" />
-            <SummaryTile label="Duplicates" value={duplicates.length} color="var(--warning)" />
             <SummaryTile label="Invalid IPs" value={invalidIps.length} color="var(--warning)" />
             <SummaryTile label="Bad Net/Link" value={badNetworks.length + badLinks.length} color="var(--warning)" />
+          </div>
+
+          <div className="glass-panel flex flex-wrap items-center justify-between gap-3 rounded-xl p-3">
+            <div className="flex items-center gap-3">
+              <Switch
+                id="replace-inventory"
+                checked={replaceInventory}
+                onCheckedChange={setReplaceInventory}
+                disabled={imported !== null}
+              />
+              <div>
+                <Label htmlFor="replace-inventory" className="text-sm font-semibold">
+                  Replace inventory (source-of-truth mode)
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {replaceInventory
+                    ? "Devices absent from this file will be removed. Uploaded file becomes the active inventory."
+                    : "Merge only — existing devices not in this file will be kept."}
+                </p>
+              </div>
+            </div>
+            {replaceInventory && engine && (
+              <span className="font-mono text-[11px] text-warning">
+                {Math.max(0, engine.devices.size - updates)} existing device(s) will be removed
+              </span>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <Button onClick={doImport} disabled={valid.length === 0 || imported !== null}>
               <CheckCircle2 className="mr-2 h-4 w-4" />
               {imported !== null
-                ? `${imported} devices imported`
-                : `Import ${valid.length} valid devices`}
+                ? `Synced: +${imported.created} ~${imported.updated} -${imported.removed}`
+                : `Sync ${valid.length} row(s) → inventory`}
             </Button>
             <Button
               variant="outline"
@@ -212,6 +254,7 @@ function UploadPage() {
               {state.fileName}
             </span>
           </div>
+
 
           <Tabs defaultValue="all">
             <TabsList className="bg-secondary">
