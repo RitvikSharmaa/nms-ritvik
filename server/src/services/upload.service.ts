@@ -32,12 +32,16 @@ export interface RowResult {
   links: LinkName[];
   network: NetworkName | null;
   errors: string[];
+  action: "create" | "update" | "invalid";
 }
 
 export interface UploadReport {
   uploadId: string;
   fileName: string;
   totalRows: number;
+  createdRows: number;
+  updatedRows: number;
+  removedRows: number;
   successRows: number;
   failedRows: number;
   rows: RowResult[];
