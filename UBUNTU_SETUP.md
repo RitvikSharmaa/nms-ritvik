@@ -1,49 +1,125 @@
-# Ubuntu VM Setup - Complete Offline Guide
+# Ubuntu VM Setup - Air-Gapped/Offline
 
-## Step 1: Prerequisites (Do This ONCE While Online)
+## Step 1: Zip This Folder on Windows
 
-### Install Node.js 20
-```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
+**Right-click `nms-ritvik` folder → "Send to" → "Compressed (zipped) folder"**
+
+OR use PowerShell:
+```powershell
+Compress-Archive -Path "nms-ritvik" -DestinationPath "nms-ritvik.zip"
 ```
 
-### Install PostgreSQL
+**Folder size:** ~430 MB (zips to ~150-200 MB)
+
+**What's included:**
+- ✅ 662 npm packages (274 frontend + 388 backend)
+- ✅ All source code
+- ✅ Database migrations
+- ✅ Documentation
+
+---
+
+## IMPORTANT: This Folder Is Ready to Go!
+
+✅ **All npm packages are already installed in this folder!**
+- `node_modules/` - Frontend packages (React, TanStack, Recharts, etc.)
+- `server/node_modules/` - Backend packages (Express, PostgreSQL, Socket.io, etc.)
+
+**Just zip, transfer to Ubuntu VM, unzip, and run!**
+
+---
+
+## Prerequisites on Ubuntu VM
+
+Your Ubuntu 24.04 VM **MUST** have these installed:
+
+### Check What You Have:
 ```bash
-sudo apt install -y postgresql postgresql-contrib
+node --version   # Need 16.x or higher (18 or 20 is best)
+npm --version    # Need 8.x or higher
+psql --version   # Need 12.x or higher
 ```
 
-### Install Build Tools (for native modules like bcrypt, net-snmp)
+### If Missing - Install from Ubuntu ISO (Air-Gapped Method):
+
+**Mount Ubuntu installation media:**
 ```bash
-sudo apt install -y build-essential python3 libsnmp-dev
+# Insert Ubuntu USB or mount ISO
+sudo mkdir -p /mnt/cdrom
+sudo mount -o loop /path/to/ubuntu-24.04.iso /mnt/cdrom
+
+# Or if USB drive
+sudo mount /dev/sdb1 /mnt/cdrom  # Check with 'lsblk' for correct device
+
+# Add as apt source
+sudo apt-cdrom -m -d /mnt/cdrom add
+
+# Install packages (NO INTERNET NEEDED)
+sudo apt install nodejs npm postgresql postgresql-contrib build-essential python3
+
+# Verify
+node --version    # Should be 18+ on Ubuntu 24.04
+npm --version     # Should be 9+
+psql --version    # Should be 14+
+
+# Unmount
+sudo umount /mnt/cdrom
 ```
 
-### Start PostgreSQL
-```bash
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
-```
+**Alternative - If already installed on Ubuntu:**
+Most Ubuntu 24.04 installations include these by default. Just verify versions above.
 
-### Verify Installation
-```bash
-node --version    # Should show v20.x
-npm --version
-psql --version
-```
+---
 
 ---
 
 ## Step 2: Transfer Project to Ubuntu VM
 
-Zip this folder on Windows, transfer to Ubuntu VM (USB/shared folder), then unzip:
+**On Windows (your current machine):**
 ```bash
+# Zip entire folder (includes node_modules!)
+# Use 7-Zip, WinRAR, or Windows built-in zip
+# Right-click folder > Send to > Compressed folder
+# OR use PowerShell:
+Compress-Archive -Path "nms-ritvik" -DestinationPath "nms-ritvik.zip"
+```
+
+**Transfer to Ubuntu VM:**
+- Copy `nms-ritvik.zip` to USB drive
+- OR use shared folder (VMware/VirtualBox)
+- OR use network share
+
+**On Ubuntu VM:**
+```bash
+# Copy zip file to home directory
+cp /media/usb/nms-ritvik.zip ~/
+# OR cp /mnt/shared/nms-ritvik.zip ~/
+
+# Unzip
+cd ~
 unzip nms-ritvik.zip
 cd nms-ritvik
+
+# Verify node_modules exist
+ls node_modules/          # Should show MANY folders
+ls server/node_modules/   # Should show MANY folders
 ```
 
 ---
 
-## Step 3: Setup Database
+## Step 3: Check What You Have
+
+```bash
+# Check Node.js version
+node --version
+
+# If less than v16, you have a problem - need Node 16+
+# Most Ubuntu 20.04+ has Node 12-16 which should work
+```
+
+---
+
+## Step 4: Setup Database
 
 ```bash
 # Create database and user
@@ -64,21 +140,21 @@ sudo -u postgres psql -l | grep nms
 
 ---
 
-## Step 4: Install Dependencies (Works Offline!)
+## Step 5: Verify Dependencies (Already Installed!)
 
-All npm packages will be downloaded while you're online, then they work offline.
+**Good news: All npm packages are already in the zip file!**
 
+Just verify they exist:
 ```bash
-# Install backend dependencies
-cd server
-npm install
-
-# Install frontend dependencies
-cd ..
-npm install
+ls node_modules/          # Should show many folders (React, TanStack, etc.)
+ls server/node_modules/   # Should show many folders (Express, PostgreSQL, etc.)
 ```
 
-**This will take 5-10 minutes. All packages are cached in node_modules.**
+**If you see folders, you're good!** No npm install needed - everything works offline.
+
+**If folders are missing somehow:**
+- You need to re-download the zip file with node_modules included
+- OR give VM temporary internet access and run: `npm install && cd server && npm install`
 
 ---
 

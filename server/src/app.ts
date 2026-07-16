@@ -138,6 +138,35 @@ export function createApp(): express.Express {
   app.use("/api", apiRouter);
 
   // ─────────────────────────────────────────────────────────────────────────
+  // STATIC FILE SERVING - Production Frontend
+  // ─────────────────────────────────────────────────────────────────────────
+  // In production, serve the built React application from ./public directory
+  // This allows single-server deployment where Express serves both API and UI
+  // 
+  // Structure:
+  // - /api/* → API endpoints (handled above)
+  // - /* → Static files from ./public
+  // - All non-matching routes → index.html (for client-side routing)
+  //
+  // Air-gapped deployment: Frontend is pre-built and bundled in ./public
+  if (env.nodeEnv === "production") {
+    const path = require("path");
+    const publicPath = path.join(__dirname, "../public");
+    
+    // Serve static assets (JS, CSS, images, fonts)
+    app.use(express.static(publicPath, {
+      maxAge: "1y", // Cache static assets for 1 year
+      etag: true,   // Enable ETag for cache validation
+    }));
+    
+    // SPA fallback: All non-API routes serve index.html
+    // This enables client-side routing (TanStack Router)
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(publicPath, "index.html"));
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // ERROR HANDLING MIDDLEWARE (Must be last!)
   // ─────────────────────────────────────────────────────────────────────────
   

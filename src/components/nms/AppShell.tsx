@@ -101,9 +101,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate font-display text-sm font-semibold tracking-tight">
-                NetPulse NMS
+                Setu
               </p>
-              <p className="text-[10px] text-muted-foreground">Enterprise NOC</p>
+              <p className="text-[10px] text-muted-foreground">Network Monitoring</p>
             </div>
           )}
         </div>

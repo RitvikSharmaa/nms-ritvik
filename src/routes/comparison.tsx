@@ -22,13 +22,13 @@ import { fmtMbps, fmtMs, fmtPct } from "@/lib/nms/format";
 export const Route = createFileRoute("/comparison")({
   head: () => ({
     meta: [
-      { title: "Network Comparison — NetPulse NMS" },
+      { title: "Network Comparison — Setu" },
       {
         name: "description",
         content:
           "Compare all five networks side by side: latency, bandwidth, packet loss, uptime and device counts with radar, bar and heatmap views.",
       },
-      { property: "og:title", content: "Network Comparison — NetPulse NMS" },
+      { property: "og:title", content: "Network Comparison — Setu" },
       { property: "og:description", content: "Side-by-side performance comparison of five enterprise networks." },
     ],
   }),

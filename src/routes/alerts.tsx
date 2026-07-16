@@ -19,13 +19,13 @@ import { NETWORKS } from "@/lib/nms/constants";
 export const Route = createFileRoute("/alerts")({
   head: () => ({
     meta: [
-      { title: "Alerts — NetPulse NMS" },
+      { title: "Alerts — Setu" },
       {
         name: "description",
         content:
           "Alert management console: critical, warning and informational alerts with acknowledgement and resolution workflow.",
       },
-      { property: "og:title", content: "Alerts — NetPulse NMS" },
+      { property: "og:title", content: "Alerts — Setu" },
       { property: "og:description", content: "Live alert stream across all monitored networks." },
     ],
   }),

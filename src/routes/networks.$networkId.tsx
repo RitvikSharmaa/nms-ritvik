@@ -17,12 +17,12 @@ export const Route = createFileRoute("/networks/$networkId")({
   },
   head: ({ params }) => ({
     meta: [
-      { title: `${params.networkId} — NetPulse NMS` },
+      { title: `${params.networkId} — Setu` },
       {
         name: "description",
         content: `Live device monitoring for ${params.networkId}: status, latency, packet loss, bandwidth and health scores.`,
       },
-      { property: "og:title", content: `${params.networkId} — NetPulse NMS` },
+      { property: "og:title", content: `${params.networkId} — Setu` },
       {
         property: "og:description",
         content: `Real-time monitoring of all devices in ${params.networkId}.`,

@@ -22,13 +22,13 @@ import type { NmsEngine } from "@/lib/nms/engine";
 export const Route = createFileRoute("/reports")({
   head: () => ({
     meta: [
-      { title: "Reports — NetPulse NMS" },
+      { title: "Reports — Setu" },
       {
         name: "description",
         content:
           "Generate daily, weekly, monthly or custom monitoring reports and export them as PDF, Excel or CSV.",
       },
-      { property: "og:title", content: "Reports — NetPulse NMS" },
+      { property: "og:title", content: "Reports — Setu" },
       { property: "og:description", content: "Historical performance reporting with PDF/Excel/CSV export." },
     ],
   }),
@@ -142,7 +142,7 @@ function ReportsPage() {
   const exportPdf = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     doc.setFontSize(16);
-    doc.text("NetPulse NMS — Network Performance Report", 14, 16);
+    doc.text("Setu — Network Performance Report", 14, 16);
     doc.setFontSize(10);
     doc.text(title, 14, 23);
     doc.text(`Generated: ${fmtDateTime(Date.now())}`, 14, 28);

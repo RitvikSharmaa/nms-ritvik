@@ -25,13 +25,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/upload")({
   head: () => ({
     meta: [
-      { title: "Upload Devices — NetPulse NMS" },
+      { title: "Upload Devices — Setu" },
       {
         name: "description",
         content:
           "Bulk-import network devices from CSV or Excel with full validation: IP format, duplicates, networks and link assignments.",
       },
-      { property: "og:title", content: "Upload Devices — NetPulse NMS" },
+      { property: "og:title", content: "Upload Devices — Setu" },
       { property: "og:description", content: "CSV/XLSX device import with validation and preview." },
     ],
   }),

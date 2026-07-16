@@ -1,0 +1,1 @@
+import{v as e}from"./index-C7zmmORa.js";var t=e(),n=()=>(0,t.jsxs)(`div`,{className:`py-20 text-center`,children:[(0,t.jsx)(`h1`,{className:`font-display text-xl font-semibold`,children:`Network not found`}),(0,t.jsx)(`p`,{className:`mt-2 text-sm text-muted-foreground`,children:`Only Network-1 through Network-5 exist in this system.`})]});export{n as notFoundComponent};

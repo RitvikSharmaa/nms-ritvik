@@ -78,14 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "NOC Dashboard — NetPulse NMS" },
+      { title: "Dashboard — Setu" },
       {
         name: "description",
         content:
           "Global network operations dashboard: device availability, latency, packet loss, bandwidth and live alerts across all five networks.",
       },
-      { name: "author", content: "NetPulse" },
-      { property: "og:title", content: "NOC Dashboard — NetPulse NMS" },
+      { name: "author", content: "Setu" },
+      { property: "og:title", content: "Dashboard — Setu" },
       {
         property: "og:description",
         content:
@@ -93,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "NOC Dashboard — NetPulse NMS" },
+      { name: "twitter:title", content: "Dashboard — Setu" },
       { name: "twitter:description", content: "Global network operations dashboard: device availability, latency, packet loss, bandwidth and live alerts across all five networks." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c4197cce-71d8-47dd-91be-6c6a67367173/id-preview-64492bea--1b62d85c-e5b1-4ccd-9c1f-2238ccfa8bc9.lovable.app-1783784580737.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c4197cce-71d8-47dd-91be-6c6a67367173/id-preview-64492bea--1b62d85c-e5b1-4ccd-9c1f-2238ccfa8bc9.lovable.app-1783784580737.png" },

@@ -23,13 +23,13 @@ import { NETWORKS } from "@/lib/nms/constants";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NOC Dashboard — NetPulse NMS" },
+      { title: "Dashboard — Setu" },
       {
         name: "description",
         content:
           "Global network operations dashboard: device availability, latency, packet loss, bandwidth and live alerts across all five networks.",
       },
-      { property: "og:title", content: "NOC Dashboard — NetPulse NMS" },
+      { property: "og:title", content: "Dashboard — Setu" },
       {
         property: "og:description",
         content: "Global network operations dashboard: device availability, latency, packet loss, bandwidth and live alerts across all five networks.",

@@ -28,12 +28,12 @@ import type { UserRole } from "@/lib/nms/types";
 export const Route = createFileRoute("/users")({
   head: () => ({
     meta: [
-      { title: "Users — NetPulse NMS" },
+      { title: "Users — Setu" },
       {
         name: "description",
         content: "Role-based user management: administrators, operators and viewers.",
       },
-      { property: "og:title", content: "Users — NetPulse NMS" },
+      { property: "og:title", content: "Users — Setu" },
       { property: "og:description", content: "Manage NOC user accounts and roles." },
     ],
   }),

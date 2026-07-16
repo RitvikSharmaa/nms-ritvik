@@ -19,13 +19,13 @@ import type { NmsSettings } from "@/lib/nms/types";
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — NetPulse NMS" },
+      { title: "Settings — Setu" },
       {
         name: "description",
         content:
           "Configure monitoring thresholds, polling interval, SNMP parameters and data retention.",
       },
-      { property: "og:title", content: "Settings — NetPulse NMS" },
+      { property: "og:title", content: "Settings — Setu" },
       { property: "og:description", content: "Monitoring engine configuration." },
     ],
   }),

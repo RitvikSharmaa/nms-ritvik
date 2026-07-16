@@ -16,12 +16,12 @@ import { fmtDateTime } from "@/lib/nms/format";
 export const Route = createFileRoute("/audit-logs")({
   head: () => ({
     meta: [
-      { title: "Audit Logs — NetPulse NMS" },
+      { title: "Audit Logs — Setu" },
       {
         name: "description",
         content: "Complete audit trail of administrative actions: imports, alert handling, settings and user management.",
       },
-      { property: "og:title", content: "Audit Logs — NetPulse NMS" },
+      { property: "og:title", content: "Audit Logs — Setu" },
       { property: "og:description", content: "Administrative audit trail for the NOC." },
     ],
   }),
