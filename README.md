@@ -1,64 +1,60 @@
 # NetPulse NMS - Network Monitoring System
 
-Simple network monitoring with ICMP ping + SNMP polling.
+Real-time network monitoring with ICMP ping + SNMP polling.
 
-## Quick Setup (Ubuntu VM - Offline)
+## Quick Start
 
-### 1. Prerequisites (Install while connected):
+**See UBUNTU_SETUP.md for complete setup guide!**
+
+### What You Need (Ubuntu VM):
+- Node.js 20
+- PostgreSQL
+- This project folder
+
+### Setup:
 ```bash
-# Node.js 20
+# Install Node.js + PostgreSQL (while online)
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
+sudo apt install -y nodejs postgresql postgresql-contrib build-essential python3 libsnmp-dev
 
-# PostgreSQL
-sudo apt install -y postgresql postgresql-contrib
-```
+# Create database
+sudo -u postgres psql -c "CREATE DATABASE nms; CREATE USER nms WITH PASSWORD 'nms_secret'; GRANT ALL PRIVILEGES ON DATABASE nms TO nms;"
 
-### 2. Setup Database:
-```bash
-sudo -u postgres psql -c "CREATE DATABASE nms;"
-sudo -u postgres psql -c "CREATE USER nms WITH PASSWORD 'nms_secret';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE nms TO nms;"
-```
+# Install dependencies
+cd server && npm install && cd .. && npm install
 
-### 3. Install Dependencies:
-```bash
-cd server && npm install
-cd .. && npm install
-```
-
-### 4. Configure:
-```bash
+# Configure
 cp server/.env.example server/.env
-nano server/.env
-# Change: JWT_SECRET and ADMIN_PASSWORD
+nano server/.env  # Change JWT_SECRET and ADMIN_PASSWORD
+
+# Create tables
+cd server && npm run migrate:dev
+
+# Run (two terminals)
+cd server && npm run dev  # Terminal 1
+npm run dev               # Terminal 2
+
+# Access: http://localhost:5173
 ```
 
-### 5. Run Migrations:
-```bash
-cd server && npm run migrate
-```
+### Features:
+- ✅ ICMP ping monitoring (latency, packet loss)
+- ✅ SNMP bandwidth monitoring
+- ✅ Real-time dashboard with charts
+- ✅ Device management via CSV import
+- ✅ Alert system
+- ✅ Report generation (PDF/CSV/XLSX)
+- ✅ User management with roles
+- ✅ Works completely offline after setup
 
-### 6. Start Application:
-```bash
-# Terminal 1 - Backend
-cd server && npm run dev
-
-# Terminal 2 - Frontend  
-npm run dev
-```
-
-Access: http://localhost:5173
-
-## CSV Format
+### CSV Format:
 ```csv
 Username,IP Address,Device Name,Link,Network
 admin,192.168.1.1,Router-1,Link-1,Network-1
 ```
 
-Networks: Network-1 to Network-5
-Links: Link-1 to Link-3
-
-## Default Login
+### Default Login:
 - Username: `admin`
 - Password: (from .env file)
+
+**Full guide: UBUNTU_SETUP.md**
